@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL 几何图案生成器</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../js/common/initShaders.js"></script>
+    <script type="text/javascript" src="../js/common/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="../js/ch02/app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>WebGL 几何图案生成器</h1>
+        </header>
+        
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="pattern-selector">
+                    <label for="pattern-select">选择几何图案:</label>
+                    <select id="pattern-select">
+                        <option value="gasket2d">2D Sierpinski Gasket</option>
+                        <option value="gasket3d">3D Sierpinski Gasket</option>
+                        <option value="advanced-tessellation">高级三角形细分</option>
+                    </select>
+                </div>
+                
+                <!-- 通用参数 -->
+                <div class="control-group">
+                    <h3>通用参数</h3>
+                    <div class="control-row">
+                        <label for="subdivision-level">剖分层次 (0-7):</label>
+                        <input type="number" id="subdivision-level" min="0" max="7" value="1">
+                    </div>
+                </div>
+                
+                <!-- 2D谢尔宾斯基三角形参数 -->
+                <div id="gasket2d-controls" class="control-group">
+                    <!-- 此图案没有额外参数 -->
+                </div>
+                
+                <!-- 3D谢尔宾斯基四面体参数 -->
+                <div id="gasket3d-controls" class="control-group hidden">
+                    <!-- 此图案没有额外参数 -->
+                </div>
+                
+                <!-- 高级三角形细分参数 -->
+                <div id="advanced-tessellation-controls" class="control-group hidden">
+                    <h3>高级三角形细分参数</h3>
+                    <div class="control-row">
+                        <label for="rotation-angle-advanced">基础旋转角度 (度):</label>
+                        <input type="number" id="rotation-angle-advanced" min="0" max="360" value="0" step="5">
+                    </div>
+                    <div class="control-row">
+                        <label for="rotation-type">旋转类型:</label>
+                        <select id="rotation-type">
+                            <option value="uniform">均匀旋转</option>
+                            <option value="distance-based">基于距离的旋转</option>
+                        </select>
+                    </div>
+                    <div class="control-row">
+                        <label for="color-picker-advanced">线条颜色:</label>
+                        <input type="color" id="color-picker-advanced" value="#ff0000">
+                    </div>
+                </div>
+                
+                <button id="draw-button">绘制图案</button>
+                
+                <div class="pattern-description">
+                    <h4>图案说明</h4>
+                    <p id="pattern-description-text">选择一个几何图案类型，调整参数，然后点击"绘制图案"按钮生成相应的几何图形。</p>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="gl-canvas" width="600" height="600">
+                    你的浏览器不支持HTML5 canvas元素
+                </canvas>
+            </div>
+        </div>
+    </div>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        in vec4 vPosition;
+        void main(){
+            gl_Position = vPosition;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+        uniform vec4 uColor;
+        out vec4 fColor;
+        void main(){
+            fColor = uColor;
+        }
+    </script>
+
+    <script id="vertex-shader-3d" type="x-shader/x-vertex">
+        #version 300 es
+        in vec3 vPosition;
+        in vec4 aColor;
+        out vec4 vColor;
+
+        void main(){
+            gl_Position = vec4( vPosition, 1.0 );
+            vColor = aColor;
+        }
+    </script>
+
+    <script id="fragment-shader-3d" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+        
+        in vec4 vColor;
+        out vec4 fColor;
+        void main(){
+            fColor = vColor;
+        }
+    </script>
+</body>
+</html>

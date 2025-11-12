@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系行星运动模拟</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="webgl-canvas"></canvas>
+        <div id="info">
+            <h3>太阳系行星运动模拟</h3>
+            <p>使用鼠标拖动旋转视角</p>
+            <p>使用滚轮缩放</p>
+        </div>
+        <div id="controls">
+            <button id="pause-btn">暂停/继续</button>
+            <button id="reset-btn">重置视角</button>
+            <button id="toggle-orbits-btn">切换轨道显示</button>
+            <button id="toggle-labels-btn">切换标签显示</button>
+        </div>
+        <div id="speed-controls">
+            <div class="slider-container">
+                <label>模拟速度:</label>
+                <input type="range" id="speed-slider" min="0" max="300" value="100">
+                <span id="speed-value">100%</span>
+            </div>
+            <div class="slider-container">
+                <label>行星大小:</label>
+                <input type="range" id="size-slider" min="50" max="200" value="100">
+                <span id="size-value">100%</span>
+            </div>
+        </div>
+        <div id="fps-counter">FPS: 60</div>
+    </div>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+#canvas-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#webgl-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    max-width: 300px;
+}
+
+#controls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#speed-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 5px 10px;
+    margin: 0 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #444;
+}
+
+.slider-container {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+label {
+    display: inline-block;
+    width: 80px;
+    font-size: 12px;
+}
+
+input[type="range"] {
+    width: 120px;
+}
+
+#fps-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+#speed-value, #size-value {
+    font-size: 12px;
+    min-width: 40px;
+    display: inline-block;
+    text-align: right;
+}

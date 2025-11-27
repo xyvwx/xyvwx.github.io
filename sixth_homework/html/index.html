@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>交互式物体对象展示（初）</title>
+        <meta charset="utf-8">
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                background-color: #f5f5f5;
+                overflow: hidden;
+            }
+            
+            .container {
+                display: flex;
+                height: 100vh;
+                width: 100vw;
+            }
+            
+            .viewer-panel {
+                flex: 3;
+                background: #2c3e50;
+                display: flex;
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .canvas-container {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #34495e;
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            #gl-canvas {
+                border: 2px solid #3498db;
+                border-radius: 4px;
+                background: #000;
+            }
+            
+            .info-panel {
+                background: #34495e;
+                color: white;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+            
+            .controls-panel {
+                flex: 2;
+                background: #ecf0f1;
+                padding: 15px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .control-group {
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border-left: 4px solid #3498db;
+            }
+            
+            .control-group h3 {
+                margin: 0 0 12px 0;
+                color: #2c3e50;
+                font-size: 16px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
+            }
+            
+            .control-row {
+                display: flex;
+                align-items: center;
+                margin: 8px 0;
+                gap: 10px;
+            }
+            
+            .control-row label {
+                min-width: 80px;
+                font-size: 14px;
+                color: #555;
+            }
+            
+            .slider-container {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            input[type="range"] {
+                flex: 1;
+                height: 6px;
+                background: #ddd;
+                border-radius: 3px;
+                outline: none;
+            }
+            
+            input[type="range"]::-webkit-slider-thumb {
+                appearance: none;
+                width: 16px;
+                height: 16px;
+                background: #3498db;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+            
+            .value-display {
+                min-width: 40px;
+                text-align: center;
+                background: #f8f9fa;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                border: 1px solid #ddd;
+            }
+            
+            .radio-group {
+                display: flex;
+                gap: 15px;
+                margin: 8px 0;
+            }
+            
+            .radio-option {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .color-picker {
+                width: 40px;
+                height: 30px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            
+            .file-input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+            }
+            
+            .keyboard-help {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 6px;
+                padding: 12px;
+                font-size: 12px;
+                color: #856404;
+            }
+            
+            .keyboard-help h4 {
+                margin: 0 0 8px 0;
+                color: #856404;
+            }
+            
+            .keyboard-help p {
+                margin: 4px 0;
+            }
+            
+            .key {
+                display: inline-block;
+                background: #34495e;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 11px;
+                margin: 0 2px;
+            }
+        </style>
+        
+        <script id="vertex-shader" type="x-shader/x-vertex">
+            #version 300 es
+            in vec4 vPosition;
+            in vec4 vColor;
+            out vec4 aColor;
+        
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+        
+            void main()
+            {
+                gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+                aColor = vColor;
+            }
+        </script>
+        
+        <script id="fragment-shader" type="x-shader/x-fragment">
+            #version 300 es
+            precision mediump float;
+        
+            in vec4 aColor;
+            out vec4 fColor;
+        
+            void main()
+            {
+                fColor = aColor;
+            }
+        </script>
+        
+        <script type="text/javascript" src="../common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../common/initShaders.js"></script>
+        <script type="text/javascript" src="../common/gl-matrix-min.js"></script>
+        <script type="text/javascript" src="../common/objloader.js"></script>
+        <script type="text/javascript" src="../js/main.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <!-- 左侧视图面板 -->
+            <div class="viewer-panel">
+                <div class="canvas-container">
+                    <canvas id="gl-canvas" width="800" height="800">
+                        你的浏览器不支持HTML5 Canvas元素
+                    </canvas>
+                </div>
+                <div class="info-panel">
+                    <div><strong>状态:</strong> <span id="status-info">等待加载模型文件...</span></div>
+                    <div><strong>顶点数:</strong> <span id="vertex-count">0</span></div>
+                    <div><strong>面片数:</strong> <span id="face-count">0</span></div>
+                </div>
+            </div>
+            
+            <!-- 右侧控制面板 -->
+            <div class="controls-panel">
+                <!-- 文件加载 -->
+                <div class="control-group">
+                    <h3>📁 模型加载</h3>
+                    <div class="control-row">
+                        <label>选择OBJ文件:</label>
+                        <input type="file" id="fileInput" class="file-input" accept=".obj">
+                    </div>
+                </div>
+                
+                <!-- 投影方式 -->
+                <div class="control-group">
+                    <h3>📐 投影方式</h3>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="ortho" name="projtype" value="1" checked>
+                            <label for="ortho">正交投影</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="persp" name="projtype" value="2">
+                            <label for="persp">透视投影</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 绘制方式 -->
+                <div class="control-group">
+                    <h3>🎨 绘制方式</h3>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="wire" name="drawtype" value="1" checked>
+                            <label for="wire">线框模式</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="solid" name="drawtype" value="2">
+                            <label for="solid">面片模式</label>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>模型颜色:</label>
+                        <input type="color" id="objcolor" class="color-picker" value="#ff0000">
+                    </div>
+                </div>
+                
+                <!-- 变换控制 -->
+                <div class="control-group">
+                    <h3>⚙️ 变换控制</h3>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="objpos" name="posgrp" value="1" checked>
+                            <label for="objpos">物体变换</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="campos" name="posgrp" value="2">
+                            <label for="campos">相机变换</label>
+                        </div>
+                    </div>
+                    
+                    <!-- 位置控制 -->
+                    <div class="control-row">
+                        <label>X 位置:</label>
+                        <div class="slider-container">
+                            <input type="range" id="xpos" min="-5.0" max="5.0" step="0.1" value="0">
+                            <span id="xpos-value" class="value-display">0.0</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Y 位置:</label>
+                        <div class="slider-container">
+                            <input type="range" id="ypos" min="-5.0" max="5.0" step="0.1" value="0">
+                            <span id="ypos-value" class="value-display">0.0</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Z 位置:</label>
+                        <div class="slider-container">
+                            <input type="range" id="zpos" min="-5.0" max="5.0" step="0.1" value="0">
+                            <span id="zpos-value" class="value-display">0.0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 旋转控制 -->
+                    <div class="control-row">
+                        <label>X 旋转:</label>
+                        <div class="slider-container">
+                            <input type="range" id="xrot" min="-360" max="360" step="1.0" value="0">
+                            <span id="xrot-value" class="value-display">0°</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Y 旋转:</label>
+                        <div class="slider-container">
+                            <input type="range" id="yrot" min="-360" max="360" step="1.0" value="0">
+                            <span id="yrot-value" class="value-display">0°</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Z 旋转:</label>
+                        <div class="slider-container">
+                            <input type="range" id="zrot" min="-360" max="360" step="1.0" value="0">
+                            <span id="zrot-value" class="value-display">0°</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 缩放控制 -->
+                    <div class="control-row">
+                        <label>X 缩放:</label>
+                        <div class="slider-container">
+                            <input type="range" id="xscale" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span id="xscale-value" class="value-display">1.0</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Y 缩放:</label>
+                        <div class="slider-container">
+                            <input type="range" id="yscale" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span id="yscale-value" class="value-display">1.0</span>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <label>Z 缩放:</label>
+                        <div class="slider-container">
+                            <input type="range" id="zscale" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span id="zscale-value" class="value-display">1.0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 投影参数 -->
+                <div class="control-group">
+                    <h3>📊 投影参数</h3>
+                    <div id="ortho-params">
+                        <div class="control-row">
+                            <label>左边界:</label>
+                            <div class="slider-container">
+                                <input type="range" id="left" min="-10.0" max="0.0" step="0.1" value="-3.0">
+                                <span id="left-value" class="value-display">-3.0</span>
+                            </div>
+                        </div>
+                        <div class="control-row">
+                            <label>右边界:</label>
+                            <div class="slider-container">
+                                <input type="range" id="right" min="0.0" max="10.0" step="0.1" value="3.0">
+                                <span id="right-value" class="value-display">3.0</span>
+                            </div>
+                        </div>
+                        <div class="control-row">
+                            <label>上边界:</label>
+                            <div class="slider-container">
+                                <input type="range" id="top" min="0.0" max="10.0" step="0.1" value="3.0">
+                                <span id="top-value" class="value-display">3.0</span>
+                            </div>
+                        </div>
+                        <div class="control-row">
+                            <label>下边界:</label>
+                            <div class="slider-container">
+                                <input type="range" id="bottom" min="-10.0" max="0.0" step="0.1" value="-3.0">
+                                <span id="bottom-value" class="value-display">-3.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="persp-params" style="display:none;">
+                        <div class="control-row">
+                            <label>视野角度:</label>
+                            <div class="slider-container">
+                                <input type="range" id="fovy" min="10" max="120" step="1" value="45">
+                                <span id="fovy-value" class="value-display">45°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 键盘控制说明 -->
+                <div class="keyboard-help">
+                    <h4>⌨️ 键盘控制说明</h4>
+                    <p><strong>移动控制:</strong> 
+                        <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> 平移,
+                        <span class="key">Z</span><span class="key">X</span> 前后移动
+                    </p>
+                    <p><strong>旋转控制:</strong> 
+                        <span class="key">U</span><span class="key">J</span> (X轴),
+                        <span class="key">H</span><span class="key">K</span> (Y轴),
+                        <span class="key">N</span><span class="key">M</span> (Z轴)
+                    </p>
+                    <p><strong>其他:</strong> 
+                        <span class="key">R</span> 重置,
+                        鼠标拖动旋转视图
+                    </p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

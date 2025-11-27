@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立方体投影视图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .projection-section {
+            flex: 1;
+            min-width: 500px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #3498db;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .info {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #555;
+            border: 1px solid #e9ecef;
+        }
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .projection-section {
+                width: 100%;
+                max-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>立方体投影视图</h1>
+        <p class="subtitle">比较正交投影与透视投影的视觉效果</p>
+    </header>
+
+    <div class="container">
+        <!-- 正交投影部分 -->
+        <section class="projection-section">
+            <h2 class="section-title">正交投影视图</h2>
+            <canvas id="proj-canvas" width="512" height="512">
+                您的浏览器不支持HTML5 Canvas元素
+            </canvas>
+            <div class="controls">
+                <button id="btn1">增加近远平面距离</button>
+                <button id="btn2">减小近远平面距离</button>
+                <button id="btn3">增加观察距离</button>
+                <button id="btn4">减小观察距离</button>
+                <button id="btn5">增加仰角</button>
+                <button id="btn6">减小仰角</button>
+                <button id="btn7">增加方位角</button>
+                <button id="btn8">减小方位角</button>
+            </div>
+            <div class="info">
+                <p>正交投影保持物体平行线在投影后仍然平行，没有透视变形。</p>
+            </div>
+        </section>
+
+        <!-- 透视投影部分 -->
+        <section class="projection-section">
+            <h2 class="section-title">透视投影视图</h2>
+            <canvas id="gl-canvas" width="512" height="512">
+                您的浏览器不支持HTML5 Canvas元素
+            </canvas>
+            <div class="controls">
+                <button id="btn1-persp">增加近远平面距离</button>
+                <button id="btn2-persp">减小近远平面距离</button>
+                <button id="btn3-persp">增加观察距离</button>
+                <button id="btn4-persp">减小观察距离</button>
+                <button id="btn5-persp">增加仰角</button>
+                <button id="btn6-persp">减小仰角</button>
+                <button id="btn7-persp">增加方位角</button>
+                <button id="btn8-persp">减小方位角</button>
+            </div>
+            <div class="info">
+                <p>透视投影模拟人眼视觉效果，远处的物体看起来更小。</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 着色器脚本 -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        in vec4 vPosition;
+        in vec4 vColor;
+        out vec4 aColor;
+
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+
+        void main(){
+            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+            aColor = vColor;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+        
+        in vec4 aColor;
+        out vec4 fColor;
+        void main(){
+            fColor = aColor;
+        }
+    </script>
+
+    <!-- 外部库 -->
+    <script type="text/javascript" src="../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/gl-matrix-min.js"></script>
+    
+    <!-- 主JavaScript文件 -->
+    <script type="text/javascript" src="../js/main.js"></script>
+</body>
+</html>

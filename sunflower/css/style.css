@@ -1,0 +1,475 @@
+/* 原有样式保持不变，只添加新样式 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    overflow: hidden;
+    background: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#container { width: 100%; height: 100%; cursor: grab; }
+#container:active { cursor: grabbing; }
+
+/* UI 控制面板 */
+.controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 200;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-height: 85vh;
+    overflow-y: auto;
+    width: 350px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+/* 心情按钮样式 */
+.btn-happy { background: linear-gradient(135deg, #FFD700, #FFC107); color: #333; box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3); }
+.btn-happy:hover { background: linear-gradient(135deg, #FFC107, #FFA000); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 193, 7, 0.4); }
+.btn-sad { background: linear-gradient(135deg, #2196F3, #1976D2); color: white; box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3); }
+.btn-sad:hover { background: linear-gradient(135deg, #1976D2, #0D47A1); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4); }
+.btn-water { background: linear-gradient(135deg, #4CAF50, #388E3C); color: white; box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3); }
+.btn-water:hover { background: linear-gradient(135deg, #388E3C, #2E7D32); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4); }
+.btn-water:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-load-scene { background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; }
+.btn-load-scene:hover { background: linear-gradient(135deg, #7B1FA2, #6A1B9A); transform: translateY(-2px); }
+.btn-save-scene { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; }
+.btn-save-scene:hover { background: linear-gradient(135deg, #F57C00, #EF6C00); transform: translateY(-2px); }
+.btn-save-image { background: linear-gradient(135deg, #F44336, #D32F2F); color: white; }
+.btn-save-image:hover { background: linear-gradient(135deg, #D32F2F, #C62828); transform: translateY(-2px); }
+
+/* 阳光文本框样式 */
+.cloud-text-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 300; }
+.cloud-text { position: absolute; background: rgba(255, 255, 255, 0.95); padding: 15px 20px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); font-size: 14px; max-width: 250px; text-align: center; color: #333; font-family: 'Arial', sans-serif; pointer-events: none; border: 2px solid #FFD700; transform: translate(-50%, -50%); animation: floatUp 3s ease-out forwards; opacity: 0; }
+@keyframes floatUp {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -120%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(0.9); }
+}
+
+.info { position: absolute; bottom: 10px; right: 10px; color: #333; background-color: rgba(255, 255, 255, 0.8); padding: 8px 12px; border-radius: 6px; font-size: 12px; z-index: 100; backdrop-filter: blur(5px); border: 1px solid rgba(0, 0, 0, 0.1); }
+
+/* 状态提示 */
+.mood-indicator { position: absolute; top: 20px; left: 20px; background: rgba(255, 255, 255, 0.9); padding: 10px 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; z-index: 200; }
+.mood-happy { color: #FFC107; border-left: 4px solid #FFC107; }
+.mood-sad { color: #2196F3; border-left: 4px solid #2196F3; }
+
+/* 浇水提示 */
+.watering-info { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background: rgba(76, 175, 80, 0.9); color: white; padding: 8px 15px; border-radius: 20px; font-size: 14px; z-index: 200; opacity: 0; transition: opacity 0.3s; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
+
+/* 心情日历样式 */
+.btn-calendar { position: absolute; bottom: 10px; left: 10px; background: linear-gradient(135deg, #6a11cb, #2575fc); color: white; z-index: 200; }
+.btn-calendar:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+#calendarModal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 800px; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500; display: none; flex-direction: row; overflow: hidden; border: 1px solid #eee; }
+.calendar-container { width: 55%; padding: 20px; border-right: 1px solid #f0f0f0; }
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.calendar-header h2 { font-size: 1.5em; color: #333; }
+.calendar-header button { background: #f0f0f0; color: #333; border-radius: 50%; width: 30px; height: 30px; padding: 0; font-size: 1em; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.calendar-day, .calendar-weekday { text-align: center; padding: 8px; font-size: 0.9em; }
+.calendar-weekday { font-weight: bold; color: #999; }
+.calendar-day { position: relative; border-radius: 8px; cursor: pointer; transition: background 0.2s; border: 1px solid transparent; }
+.calendar-day:hover { background: #f5f5f5; }
+.calendar-day.other-month { color: #ccc; }
+.calendar-day.today { font-weight: bold; border: 1px solid #007bff; }
+.mood-dot { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; }
+.mood-dot.happy { background-color: #FFC107; }
+.mood-dot.sad { background-color: #2196F3; }
+.diary-container { width: 45%; padding: 20px; display: flex; flex-direction: column; }
+.diary-container h3 { color: #555; margin-bottom: 10px; }
+.diary-container textarea { flex-grow: 1; width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 1em; resize: none; margin-bottom: 15px; }
+.diary-controls { display: flex; gap: 10px; justify-content: flex-end; }
+.diary-controls button { font-size: 0.9em; padding: 8px 15px; }
+#btnCloseCalendar { position: absolute; top: 10px; right: 10px; background: none; font-size: 1.5em; color: #aaa; padding: 0; width: 30px; height: 30px; border-radius: 50%; }
+#btnCloseCalendar:hover { background: #f0f0f0; color: #333; }
+
+/* 新增：控制模块样式 */
+.control-module {
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.module-title {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.module-title::before {
+    content: "▶";
+    font-size: 0.8em;
+    transition: transform 0.3s;
+}
+
+.module-title.collapsed::before {
+    transform: rotate(90deg);
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.control-label {
+    font-size: 0.85em;
+    color: #444;
+    width: 60%;
+}
+
+.control-input {
+    width: 35%;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.control-slider {
+    width: 35%;
+}
+
+.value-display {
+    font-size: 0.8em;
+    color: #666;
+    min-width: 30px;
+    text-align: right;
+}
+
+.btn-reset {
+    background: linear-gradient(135deg, #9E9E9E, #757575);
+    color: white;
+    font-size: 0.85em;
+    padding: 6px 12px;
+    margin-top: 5px;
+}
+
+.btn-reset:hover {
+    background: linear-gradient(135deg, #757575, #616161);
+    transform: translateY(-1px);
+}
+
+/* 新增：雷电效果控制样式 */
+.lightning-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.btn-thunder {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.btn-thunder:hover {
+    background: linear-gradient(135deg, #2575fc, #6a11cb);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.thunder-info {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    z-index: 200;
+    color: #9C27B0;
+    border-left: 4px solid #9C27B0;
+    display: none;
+}
+
+/* 闪电视觉效果 */
+.lightning-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0;
+    z-index: 400;
+    pointer-events: none;
+}
+
+/* 雷电文字提示 */
+.thunder-text {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    max-width: 250px;
+    text-align: center;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+    pointer-events: none;
+    border: 2px solid #9C27B0;
+    transform: translate(-50%, -50%);
+    animation: thunderText 2s ease-out forwards;
+    opacity: 0;
+    z-index: 350;
+}
+
+@keyframes thunderText {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    90% { opacity: 1; transform: translate(-50%, -150%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -180%) scale(0.9); }
+}
+
+/* 闪电形状 */
+.lightning-shape {
+    position: absolute;
+    width: 10px;
+    height: 40px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(200,220,255,0.9) 100%);
+    transform-origin: top center;
+    z-index: 399;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* 新增：装饰商店样式 */
+.decor-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.decor-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 5px 8px;
+    font-size: 0.75em;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.decor-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.decor-btn.selected {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.decor-btn.pot { background: linear-gradient(135deg, #8B4513, #5D2906); }
+.decor-btn.pot.selected { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+
+.decor-btn.decor { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+.decor-btn.decor.selected { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+
+.decor-btn.view { background: linear-gradient(135deg, #FF9800, #F57C00); }
+.decor-btn.view.selected { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+
+/* 新增：物品摆件控制样式 */
+.item-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(240, 240, 240, 0.5);
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.item-control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-control-label {
+    font-size: 0.8em;
+    color: #555;
+    width: 40%;
+}
+
+.item-control-slider {
+    width: 40%;
+}
+
+.item-value-display {
+    font-size: 0.75em;
+    color: #777;
+    min-width: 40px;
+    text-align: right;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #F44336, #D32F2F);
+    color: white;
+    font-size: 0.75em;
+    padding: 4px 8px;
+    margin-top: 5px;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #D32F2F, #C62828);
+}
+
+.animal-interaction {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    font-size: 0.8em;
+    color: #333;
+    z-index: 200;
+    max-width: 200px;
+    display: none;
+}
+
+.interaction-bubble {
+    position: absolute;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    font-size: 0.8em;
+    color: #333;
+    z-index: 300;
+    max-width: 150px;
+    animation: fadeIn 0.3s;
+    border: 1px solid #eee;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 新增：小乌云样式控制 */
+.cloud-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.btn-cloud {
+    background: linear-gradient(135deg, #5D6D7E, #34495E);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.btn-cloud:hover {
+    background: linear-gradient(135deg, #34495E, #2C3E50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.cloud-info {
+    position: absolute;
+    top: 120px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    z-index: 200;
+    color: #5D6D7E;
+    border-left: 4px solid #5D6D7E;
+    display: none;
+}
+
+/* 新增：星星荧光效果控制样式 */
+.stars-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.btn-stars {
+    background: linear-gradient(135deg, #9C27B0, #673AB7);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.btn-stars:hover {
+    background: linear-gradient(135deg, #673AB7, #512DA8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.stars-info {
+    position: absolute;
+    top: 160px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    z-index: 200;
+    color: #9C27B0;
+    border-left: 4px solid #9C27B0;
+    display: none;
+}

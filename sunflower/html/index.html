@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>向阳拾绪：我的向日葵情绪册</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="container"></div>
+    <div class="controls">
+        <div style="margin-bottom:5px; font-size:0.9em; color:#666;">场景交互控制</div>
+        <button id="btnMood" class="btn-happy">切换心情</button>
+        <button id="btnWater" class="btn-water" disabled>浇水 (促进生长)</button>
+        
+        <!-- 新增：雷电效果控制 - 初始隐藏，只在沮丧时显示 -->
+        <div class="control-module" id="thunderModule" style="display: none;">
+            <div class="module-title" id="thunderTitle">⚡ 雷电效果</div>
+            <div id="thunderControls" class="control-group">
+                <div class="control-row">
+                    <span class="control-label">雷电强度:</span>
+                    <input type="range" id="thunderIntensity" class="control-slider" min="1" max="10" step="1" value="5">
+                    <span id="thunderIntensityValue" class="value-display">5</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">闪电频率:</span>
+                    <input type="range" id="thunderFrequency" class="control-slider" min="1" max="10" step="1" value="5">
+                    <span id="thunderFrequencyValue" class="value-display">5</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">雷声音量:</span>
+                    <input type="range" id="thunderVolume" class="control-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span id="thunderVolumeValue" class="value-display">0.5</span>
+                </div>
+                <div class="lightning-controls">
+                    <button id="btnTestThunder" class="btn-thunder">测试雷电效果</button>
+                    <button id="btnAutoThunder" class="btn-thunder">自动雷电模式</button>
+                </div>
+                <div id="thunderStatus" style="font-size:0.8em; color:#666; margin-top:5px; text-align:center;"></div>
+            </div>
+        </div>
+        
+        <!-- 新增：小乌云控制 - 初始隐藏，只在沮丧时显示 -->
+        <div class="control-module" id="cloudModule" style="display: none;">
+            <div class="module-title" id="cloudTitle">☁️ 小乌云效果</div>
+            <div id="cloudControls" class="control-group">
+                <div class="control-row">
+                    <span class="control-label">乌云数量:</span>
+                    <input type="range" id="cloudCount" class="control-slider" min="2" max="8" step="1" value="4">
+                    <span id="cloudCountValue" class="value-display">4</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">乌云大小:</span>
+                    <input type="range" id="cloudSize" class="control-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                    <span id="cloudSizeValue" class="value-display">1.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">飘动速度:</span>
+                    <input type="range" id="cloudSpeed" class="control-slider" min="0.1" max="2.0" step="0.1" value="0.8">
+                    <span id="cloudSpeedValue" class="value-display">0.8</span>
+                </div>
+                <div class="cloud-controls">
+                    <button id="btnUpdateClouds" class="btn-cloud">更新乌云效果</button>
+                </div>
+                <div id="cloudStatus" style="font-size:0.8em; color:#666; margin-top:5px; text-align:center;"></div>
+            </div>
+        </div>
+        
+        <!-- 新增：星星荧光效果控制 - 初始隐藏，只在沮丧时显示 -->
+        <div class="control-module" id="starsModule" style="display: none;">
+            <div class="module-title" id="starsTitle">⭐ 星星荧光效果</div>
+            <div id="starsControls" class="control-group">
+                <div class="control-row">
+                    <span class="control-label">星星数量:</span>
+                    <input type="range" id="starsCount" class="control-slider" min="10" max="200" step="10" value="80">
+                    <span id="starsCountValue" class="value-display">80</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">星星大小:</span>
+                    <input type="range" id="starsSize" class="control-slider" min="0.1" max="1.0" step="0.05" value="0.3">
+                    <span id="starsSizeValue" class="value-display">0.3</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">闪烁速度:</span>
+                    <input type="range" id="starsSpeed" class="control-slider" min="0.5" max="3.0" step="0.1" value="1.5">
+                    <span id="starsSpeedValue" class="value-display">1.5</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">发光强度:</span>
+                    <input type="range" id="starsGlow" class="control-slider" min="0.1" max="2.0" step="0.1" value="0.8">
+                    <span id="starsGlowValue" class="value-display">0.8</span>
+                </div>
+                <div class="stars-controls">
+                    <button id="btnToggleStars" class="btn-stars">切换星星效果</button>
+                    <button id="btnUpdateStars" class="btn-stars">更新星星效果</button>
+                </div>
+                <div id="starsStatus" style="font-size:0.8em; color:#666; margin-top:5px; text-align:center;"></div>
+            </div>
+        </div>
+        
+        <div style="height: 1px; background: #ddd; margin: 10px 0;"></div>
+        <button id="btnLoadScene" class="btn-load-scene">加载场景文件</button>
+        <input type="file" id="sceneFileInput" style="display: none;" accept=".json">
+        <button id="btnSaveScene" class="btn-save-scene">保存场景文件</button>
+        <button id="btnSaveImage" class="btn-save-image">保存渲染图像</button>
+        
+        <!-- 新增：装饰商店模块 -->
+        <div class="control-module">
+            <div class="module-title" id="decorTitle">🛍️ 装饰商店</div>
+            <div id="decorControls" class="control-group">
+                <!-- 花盆样式 -->
+                <div class="control-row">
+                    <span class="control-label">花盆样式:</span>
+                </div>
+                <div class="decor-options">
+                    <button class="decor-btn pot selected" data-type="pot" data-value="ceramic">陶瓷</button>
+                    <button class="decor-btn pot" data-type="pot" data-value="plastic">塑料</button>
+                    <button class="decor-btn pot" data-type="pot" data-value="vintage">复古</button>
+                    <button class="decor-btn pot" data-type="pot" data-value="wooden">木制</button>
+                </div>
+                
+                <!-- 窗外景色 -->
+                <div class="control-row" style="margin-top: 8px;">
+                    <span class="control-label">窗外景色:</span>
+                </div>
+                <div class="decor-options">
+                    <button class="decor-btn view selected" data-type="view" data-value="city">城市</button>
+                    <button class="decor-btn view" data-type="view" data-value="forest">森林</button>
+                    <button class="decor-btn view" data-type="view" data-value="beach">海边</button>
+                    <button class="decor-btn view" data-type="view" data-value="mountain">山脉</button>
+                    <button class="decor-btn view" data-type="view" data-value="garden">花园</button>
+                    <button class="decor-btn view" data-type="view" data-value="night">夜景</button>
+                </div>
+                
+                <!-- 新增：物品摆件 -->
+                <div class="control-row" style="margin-top: 8px;">
+                    <span class="control-label">添加物品:</span>
+                </div>
+                <div class="decor-options">
+                    <button class="decor-btn item" data-type="item" data-value="stones">小石子</button>
+                    <button class="decor-btn item" data-type="item" data-value="painting">壁画</button>
+                    <button class="decor-btn item" data-type="item" data-value="books">书籍堆</button>
+                    <button class="decor-btn item" data-type="item" data-value="plant">盆栽</button>
+                    <button class="decor-btn item" data-type="item" data-value="lamp">台灯</button>
+                </div>
+                
+                <button id="btnResetDecor" class="btn-reset" style="margin-top: 10px;">重置装饰</button>
+            </div>
+        </div>
+        
+        <!-- 新增：物品控制模块 -->
+        <div class="control-module" id="itemControlsModule" style="display: none;">
+            <div class="module-title" id="itemControlsTitle">🎯 物品控制</div>
+            <div id="itemControls" class="item-controls">
+                <div class="item-control-row">
+                    <span class="item-control-label">选择物品:</span>
+                    <select id="itemSelector" class="control-input" style="width: 60%;">
+                        <option value="">-- 选择一个物品 --</option>
+                    </select>
+                </div>
+                <div class="item-control-row">
+                    <span class="item-control-label">位置 X:</span>
+                    <input type="range" id="itemPositionX" class="item-control-slider" min="-10" max="10" step="0.1" value="0">
+                    <span id="itemPositionXValue" class="item-value-display">0.0</span>
+                </div>
+                <div class="item-control-row">
+                    <span class="item-control-label">位置 Y:</span>
+                    <input type="range" id="itemPositionY" class="item-control-slider" min="-5" max="10" step="0.1" value="0">
+                    <span id="itemPositionYValue" class="item-value-display">0.0</span>
+                </div>
+                <div class="item-control-row">
+                    <span class="item-control-label">位置 Z:</span>
+                    <input type="range" id="itemPositionZ" class="item-control-slider" min="-10" max="5" step="0.1" value="0">
+                    <span id="itemPositionZValue" class="item-value-display">0.0</span>
+                </div>
+                <div class="item-control-row">
+                    <span class="item-control-label">缩放:</span>
+                    <input type="range" id="itemScale" class="item-control-slider" min="0.1" max="3" step="0.1" value="1">
+                    <span id="itemScaleValue" class="item-value-display">1.0</span>
+                </div>
+                <div class="item-control-row">
+                    <span class="item-control-label">旋转:</span>
+                    <input type="range" id="itemRotation" class="item-control-slider" min="0" max="360" step="1" value="0">
+                    <span id="itemRotationValue" class="item-value-display">0°</span>
+                </div>
+                <div class="item-control-row">
+                    <button id="btnDeleteItem" class="btn-delete">删除物品</button>
+                    <button id="btnResetItem" class="btn-reset" style="font-size:0.75em; padding:4px 8px;">重置位置</button>
+                </div>
+            </div>
+        </div>
+        <!-- 材质属性模块 -->
+        <div class="control-module">
+            <div class="module-title" id="materialTitle">🔆 材质属性</div>
+            <div id="materialControls" class="control-group">
+                <div class="control-row">
+                    <span class="control-label">环境光反射:</span>
+                    <input type="range" id="materialAmbient" class="control-slider" min="0" max="1" step="0.1" value="0.2">
+                    <span id="materialAmbientValue" class="value-display">0.2</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">漫反射系数:</span>
+                    <input type="range" id="materialDiffuse" class="control-slider" min="0" max="1" step="0.1" value="0.8">
+                    <span id="materialDiffuseValue" class="value-display">0.8</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">镜面反射系数:</span>
+                    <input type="range" id="materialSpecular" class="control-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span id="materialSpecularValue" class="value-display">0.5</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">高光亮度:</span>
+                    <input type="range" id="materialShininess" class="control-slider" min="1" max="100" step="1" value="32">
+                    <span id="materialShininessValue" class="value-display">32</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">花瓣颜色:</span>
+                    <input type="color" id="petalColor" class="control-input" value="#FFD700">
+                </div>
+                <div class="control-row">
+                    <span class="control-label">叶子颜色:</span>
+                    <input type="color" id="leafColor" class="control-input" value="#2E7D32">
+                </div>
+                <button id="btnResetMaterial" class="btn-reset">重置材质</button>
+            </div>
+        </div>
+        
+        <!-- 光源设置模块 -->
+        <div class="control-module">
+            <div class="module-title" id="lightTitle">💡 光源设置</div>
+            <div id="lightControls" class="control-group">
+                <div class="control-row">
+                    <span class="control-label">太阳光强度:</span>
+                    <input type="range" id="sunIntensity" class="control-slider" min="0" max="2" step="0.1" value="1.0">
+                    <span id="sunIntensityValue" class="value-display">1.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">环境光强度:</span>
+                    <input type="range" id="ambientIntensity" class="control-slider" min="0" max="1" step="0.1" value="0.8">
+                    <span id="ambientIntensityValue" class="value-display">0.8</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">点光源强度:</span>
+                    <input type="range" id="pointLightIntensity" class="control-slider" min="0" max="2" step="0.1" value="0.7">
+                    <span id="pointLightIntensityValue" class="value-display">0.7</span>
+                </div>
+                <!-- 太阳光位置控制 -->
+                <div class="control-row">
+                    <span class="control-label">太阳X位置:</span>
+                    <input type="range" id="sunPositionX" class="control-slider" min="-20" max="20" step="0.5" value="5">
+                    <span id="sunPositionXValue" class="value-display">5.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">太阳Y位置:</span>
+                    <input type="range" id="sunPositionY" class="control-slider" min="0" max="30" step="0.5" value="10">
+                    <span id="sunPositionYValue" class="value-display">10.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">太阳Z位置:</span>
+                    <input type="range" id="sunPositionZ" class="control-slider" min="-20" max="20" step="0.5" value="7">
+                    <span id="sunPositionZValue" class="value-display">7.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">太阳光颜色:</span>
+                    <input type="color" id="sunColor" class="control-input" value="#FFD700">
+                </div>
+                <div class="control-row">
+                    <span class="control-label">环境光颜色:</span>
+                    <input type="color" id="ambientColor" class="control-input" value="#FFFFFF">
+                </div>
+                <div class="control-row">
+                    <span class="control-label">阴影质量:</span>
+                    <select id="shadowQuality" class="control-input">
+                        <option value="256">低 (256)</option>
+                        <option value="512" selected>中 (512)</option>
+                        <option value="1024">高 (1024)</option>
+                        <option value="2048">超高 (2048)</option>
+                    </select>
+                </div>
+                <button id="btnResetLight" class="btn-reset">重置光源</button>
+            </div>
+        </div>
+        
+        <!-- 相机变换模块 -->
+        <div class="control-module">
+            <div class="module-title" id="cameraTitle">📷 相机变换</div>
+            <div id="cameraControls" class="control-group">
+                <!-- 相机位置控制 -->
+                <div class="control-row">
+                    <span class="control-label">相机X位置:</span>
+                    <input type="range" id="cameraPositionX" class="control-slider" min="-20" max="20" step="0.5" value="0">
+                    <span id="cameraPositionXValue" class="value-display">0.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">相机Y位置:</span>
+                    <input type="range" id="cameraPositionY" class="control-slider" min="0" max="20" step="0.5" value="2">
+                    <span id="cameraPositionYValue" class="value-display">2.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">相机Z位置:</span>
+                    <input type="range" id="cameraPositionZ" class="control-slider" min="-20" max="20" step="0.5" value="10">
+                    <span id="cameraPositionZValue" class="value-display">10.0</span>
+                </div>
+                
+                <div class="control-row">
+                    <span class="control-label">视野角度:</span>
+                    <input type="range" id="cameraFOV" class="control-slider" min="30" max="120" step="5" value="75">
+                    <span id="cameraFOVValue" class="value-display">75°</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label">相机模式:</span>
+                    <select id="cameraMode" class="control-input">
+                        <option value="orbit" selected>轨道控制</option>
+                        <option value="fixed">固定视角</option>
+                        <option value="firstperson">第一人称</option>
+                    </select>
+                </div>
+                <button id="btnResetCamera" class="btn-reset">重置相机</button>
+                <button id="btnSaveCamera" class="btn-save-scene" style="font-size:0.85em; padding:6px 12px;">保存视角</button>
+                <button id="btnLoadCamera" class="btn-load-scene" style="font-size:0.85em; padding:6px 12px;">加载视角</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="moodIndicator" class="mood-indicator mood-happy">心情：愉悦 🌞</div>
+    <div id="thunderIndicator" class="thunder-info">雷电效果：关闭</div>
+    <div id="cloudIndicator" class="cloud-info">小乌云：关闭</div>
+    <div id="starsIndicator" class="stars-info">星星荧光：关闭</div>
+    <div id="wateringInfo" class="watering-info">浇水中... 向日葵正在生长！</div>
+    <div id="cloudTextContainer" class="cloud-text-container"></div>
+    <div class="info">左键旋转 | 右键平移 | 滚轮缩放 | 双击向日葵产生阳光 </div>
+    <button id="btnOpenCalendar" class="btn-calendar">心情日历</button>
+    
+    <!-- 闪电效果容器 -->
+    <div id="lightningFlash" class="lightning-flash"></div>
+    
+    <!-- 动物交互提示框 -->
+    <div id="animalInteraction" class="animal-interaction">
+        <div id="animalName">小猫</div>
+        <div id="animalMood">心情: 开心 😊</div>
+        <div id="animalAction" style="margin-top:5px; font-size:0.75em; color:#666;">点击动物进行交互</div>
+    </div>
+    
+    <!-- 交互气泡 -->
+    <div id="interactionBubble" class="interaction-bubble" style="display: none;"></div>
+    
+    <div id="calendarModal">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button id="prevMonthBtn">&lt;</button>
+                <h2 id="calendarTitle"></h2>
+                <button id="nextMonthBtn">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="weekdayContainer"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+        <div class="diary-container">
+            <h3 id="diaryDate">选择一天来记录吧</h3>
+            <textarea id="diaryText" placeholder="今天发生了什么开心的事吗？或者有什么小烦恼呢？都记录下来吧..."></textarea>
+            <div class="diary-controls">
+                <button id="btnRecordToday" class="btn-happy">记录今日心情</button>
+                <button id="btnSaveDiary" class="btn-save-scene">保存日记</button>
+            </div>
+        </div>
+        <button id="btnCloseCalendar">&times;</button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>
